@@ -1,0 +1,123 @@
+{% load static %}
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inner Emotion v1</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="{% static 'music/js/ajax.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'index' %}">Inner Emotion</a>
+  </div>
+</nav>
+<br>
+<div class="container">
+  <form class="row" id="ajax-file-send" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="col-10">
+      <input class="form-control" id="submit-form" type="file" accept="audio/*" id="uploadfile" name="uploadfile" value="" required>
+    </div>
+    <input type="submit" id="submit-button" name="submit" class="btn btn-primary col-2">
+  </form>
+</div>
+  <!-- 読み込み中のローディング画像 -->
+  <div class="container" id="loading-div" class="row" style="display:none; text-align: center;">
+    <div>
+      <p class="fs-1">Extracting Inner Emotion</p>
+      <img src="{% static 'music/gif/anime.gif' %}" width="50" height="50"><br>
+    </div>
+    <img src="{% static 'music/svg/loading.svg' %}" width="400" height="400">
+  </div>
+
+  <table class="table">
+
+    <tr>
+      <thead>
+        <tr>
+          <th scope="col">Title</th>
+          <th scope="col">Artist</th>
+          <th scope="col">Feeling</th>
+          <th scope="col">Date</th>
+          <th scope="col">Detail</th>
+        </tr>
+      </thead>   
+    </tr>
+    {% for item in data %}
+    <tr>
+      <th scope="row">{{ item.songname }}</th>
+      <td>{{ item.artist }}</td>
+      <td>
+        {% if item.feeling == 'Happy' %}
+        <a href="{% url 'emotion_folder' 'Happy'%}" class="btn btn-danger btn-sm">Happy</a>
+        {% elif item.feeling == 'Tense' %}
+          <a href="{% url 'emotion_folder' 'Tense'%}" class="btn btn-info btn-sm">Tense</a>
+        {% elif item.feeling == 'Melancholy' %}
+          <a href="{% url 'emotion_folder' 'Melancholy'%}" class="btn btn-warning btn-sm">Melancholy</a>
+        {% elif item.feeling == 'Relaxed' %}
+          <a href="{% url 'emotion_folder' 'Relaxed'%}" class="btn btn-success btn-sm">Relaxed</a>
+        {% endif %}
+      </td>
+      <td>{{ item.date }}</td>
+      <td><a href="{% url 'detail' item.id%}" class="btn btn-dark btn-sm">Detail</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  <div class="container text-center mt-3">
+    <button id="clear-button" class="btn btn-light">Clear Table</button>
+  </div>
+</body>
+</html>
+
+
+<script>
+  $('#ajax-file-send').on('submit', function (e) {
+    e.preventDefault();
+    var fd = new FormData($("#ajax-file-send").get(0));
+    $.ajax({
+      'url': '{% url "ajax" %}',
+      'type': 'POST',
+      'data': fd,
+      'processData': false,
+      'contentType': false,
+      'dataType': 'json'
+    })
+      .done(function (response) {
+        console.log(response['id'])
+        location.assign("{% url 'index' %}detail/" + String(response['id']))
+      })
+      .fail(function (response) {
+        console.log('fail');
+      })
+      .always(function (response) {
+        $("#loading-div").hide(1);
+      });
+  });
+  var clearDatabaseUrl = "{% url 'clear_database' %}";
+  $('#clear-button').on('click', function() {
+    $("#loading-div").hide();
+    $.ajax({
+      url: clearDatabaseUrl,
+      type: 'POST',
+      data: {
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function(response) {
+        $("#loading-div").hide();
+        alert('Database has been cleared.');
+        location.reload();
+      },
+      error: function(error) {
+        $("#loading-div").hide();
+        console.log('Error has occurred.', error);
+      }
+    });
+  });
+</script>

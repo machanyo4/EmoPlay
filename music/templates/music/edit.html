@@ -1,0 +1,106 @@
+{% load static %}
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inner Emotion v1 {{ data.id}}:{{data.songname}}</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="{% static 'music/js/ajax.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'index' %}">Inner Emotion</a>
+  </div>
+</nav>
+
+<div class="container py-3">
+<h1 class="Display-4">Edit</h1>
+<p class="fs-4">{{ data.songname | truncatechars:50}} </p>
+</div>
+
+<br>
+
+<form method="post" action="{% url 'edit' data.id%}" class="container">
+    {% csrf_token %}
+    {% for item in form %}
+    <div class="row">
+    <label for="{{item.id_for_label}}" class="col-2">{{item.label}}</label>
+        <div class="col-10">
+            <input
+                type="{{item.field.widget.input_type}}"
+                class="form-control col-10"
+                {% if item.field.required %}required{% endif %}
+                name="{{item.name}}"
+                id="{{item.id_for_label}}"
+                placeholder="{{ form.instance.songname }}">
+        </div>
+        </div>
+    {% endfor %}
+    <button type="submit" class="submit btn btn-primary col-12">Update And Save</button>
+    <input type="hidden" name="next" value="{{ next }}"/>
+</form>
+
+
+  <br>
+<div class="container">
+  <p class="fs-1">Music File Infomation</p>
+  <table class="table">
+
+    <tr>
+      <thead>
+        <tr>
+          <th scope="col">Title</th>
+          <th scope="col">Artist</th>
+          <th scope="col">Feeling</th>
+          <th scope="col">Date</th>
+        </tr>
+      </thead>   
+    </tr>
+    <tr>
+      <th scope="row">{{ data.songname }}</th>
+      <td>{{ data.artist }}</td>
+      <td>{{ data.feeling }}</td>
+      <td>{{ data.date }}</td>
+    </tr>
+  </table>
+  <!--
+  {% for item, vals in data.fs.items %}
+  {{item}}
+  {%endfor%}
+  {{data.fs.items}}
+  -->
+</div>
+
+  <br>
+
+<div class="container">
+  <p class="fs-1">Probability</p>
+  <table class="table">
+
+    <tr>
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          {% for item, vals in fs.items %}
+          <th scope="col">{{item}}</th>
+          {%endfor%}
+        </tr>
+      </thead>   
+    </tr>
+    <tr>
+      <th scope="row">%</th>
+      {% for item, vals in fs.items %}
+      <td>{{vals}}</td>
+      {%endfor%}
+    </tr>
+  </table>
+  </div>
+</body>
+
+</html>
